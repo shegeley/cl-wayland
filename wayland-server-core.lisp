@@ -93,9 +93,9 @@
    wl_message
    wl_message-tclass
    wl_shell_interface
-
    wl_signal
    wl-signal-add
+   notify
    ))
 
 
