@@ -1,5 +1,5 @@
 
-(defpackage :wayland-util
+(defpackage :gen-wayland-util
   (:use :common-lisp :cffi)
   (:export
    wl-message

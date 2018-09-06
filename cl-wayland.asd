@@ -6,7 +6,7 @@
   :license "BSD 3-Clause"
   :depends-on (#:cffi #:closer-mop)
   :serial t
-  :components ((:file "wayland-util")
+  :components ((:file "gen-wayland-util")
 	       (:file "wayland-server-core")
 	       (:file "wayland-server-protocol")
 	       (:file "xdg-shell-server-protocol")

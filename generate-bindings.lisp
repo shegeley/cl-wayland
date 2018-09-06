@@ -454,7 +454,7 @@
 					      (symbol-name package)
 					      "-PROTOCOL") :keyword)))
     (remove nil `((defpackage ,package-keyword
-		    (:use :common-lisp :cffi :wayland-util :wayland-server-core ,@dependencies)
+		    (:use :common-lisp :cffi :gen-wayland-util :wayland-server-core ,@dependencies)
 		    (:export
 		     ,@symbols))
 
