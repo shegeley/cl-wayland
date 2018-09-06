@@ -1,5 +1,5 @@
 
-(defpackage :gen-wayland-util
+(defpackage :wayland-interface
   (:use :common-lisp :cffi)
   (:export
    wl-message
@@ -11,7 +11,7 @@
    make-wl-types
    offset-types))
 
-(in-package :wayland-util)
+(in-package :wayland-interface)
 
 (defcstruct wl-interface)
 
