@@ -10,7 +10,4 @@
 	       (:file "wayland-server-core")
 	       (:file "wayland-server-protocol")
 	       (:file "xdg-shell-server-protocol")
-	       (:file "zxdg-shell-v6-server-protocol")
-	       (:file "waylisp")
-	       ))
-
+	       (:file "zxdg-shell-v6-server-protocol")))
