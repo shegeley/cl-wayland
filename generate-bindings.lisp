@@ -32,7 +32,7 @@
 
 (defclass wl-enum ()
   ((name :accessor name :initarg :name :initform nil)
-   (bitfieldp :accessor bitfieldp :initarg :bitfield-p)
+   (bitfieldp :accessor bitfieldp :initarg :bitfieldp)
    (entries :accessor entries :initarg :entries
 	   :initform nil :type wl-enum-entry)))
 
