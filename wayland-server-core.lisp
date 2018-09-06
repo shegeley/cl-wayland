@@ -27,6 +27,7 @@
    wl-display-add-socket-fd
    wl-display-create
    wl-display-destroy
+   wl-display-destroy-clients
    wl-display-flush-clients
    wl-display-get-destroy-listener
    wl-display-get-event-loop
@@ -188,6 +189,9 @@
 (defcfun "wl_display_create" :pointer)
 
 (defcfun "wl_display_destroy" :void
+  (display :pointer))
+
+(defcfun "wl_display_destroy_clients" :void
   (display :pointer))
 
 (defcfun "wl_display_get_event_loop" :pointer
