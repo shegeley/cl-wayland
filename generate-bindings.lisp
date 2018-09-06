@@ -3,10 +3,6 @@
 ;; (generate-bindings nil 'wayland-server "/usr/share/wayland/wayland.xml" :path-to-lib '("libwayland-server"))
 ;; (generate-bindings nil 'xdg-shell-server "xdg-shell.xml" :dependencies (list :wayland-server-protocol) :generate-interfaces? t)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (asdf:oos 'asdf:load-op :xmls)
-  (asdf:oos 'asdf:load-op :split-sequence))
-
 (defpackage :generate-bindings
   (:use :common-lisp :xmls :split-sequence))
 
@@ -36,6 +32,7 @@
 
 (defclass wl-enum ()
   ((name :accessor name :initarg :name :initform nil)
+   (bitfieldp :accessor bitfieldp :initarg :bitfield-p)
    (entries :accessor entries :initarg :entries
 	   :initform nil :type wl-enum-entry)))
 
@@ -171,6 +168,7 @@
 			   :key (lambda (x) (car x))
 			   :test #'string=))))
     (let* ((name (concatenate 'string interface-name "_" (name-of row-sxml)))
+	   (bitfieldp (string-equal "true" (extract-value "bitfield" row-sxml)))
 	   (entries (remove nil
 			    (mapcar (lambda (x)
 			      (when (of-type x "entry")
@@ -180,6 +178,7 @@
 			    (xmls:node-children row-sxml)))))
       (make-instance 'wl-enum
 		     :name name
+		     :bitfieldp bitfieldp
 		     :entries entries))))
 
 (defun read-roes (type interface-sxml function)
@@ -266,13 +265,13 @@
 		      roes)
 	    implementation))))))
 
-(defun bitfieldp (string)
+(defun string-bitfieldp (string)
   (and (>= (length string) 2)
 	 (string= (subseq string 0 2) "0x")))
 
 (defun c-hex-to-lisp-hex (string)
   (cond
-    ((bitfieldp string)
+    ((string-bitfieldp string)
       ;; concatenate so we are non-destructive
      (concatenate 'string "#" (subseq string 1)))
     ((null string) "")
@@ -281,7 +280,7 @@
 
 (defun contains-bitfield (entries)
   (some (lambda (x)
-	  (bitfieldp (second x)))
+	  (string-bitfieldp (second x)))
 	entries))
 
 (defun generate-enums (interface rows)
@@ -291,8 +290,7 @@
 			       (list (intern (underscore-to-hyphen (name entry)) "KEYWORD")
 				     (value entry)))
 			     (entries enum))))
-	 ;; assume that if the first looks like a bit feild, the rest are too:
-	 (if (contains-bitfield fields)
+	 (if (or (contains-bitfield fields) (bitfieldp enum))
 	     `(defbitfield ,name
 		,@(mapcar (lambda (x)
 			    ;; make sure the correct value is transfered over
