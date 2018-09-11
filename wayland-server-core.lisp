@@ -96,6 +96,7 @@
    wl_shell_interface
    wl_signal
    wl-signal-add
+   link
    notify
    ))
 
