@@ -4,7 +4,8 @@
 ;; (generate-bindings nil 'xdg-shell-server "xdg-shell.xml" :dependencies (list :wayland-server-protocol) :generate-interfaces? t)
 
 (defpackage :generate-bindings
-  (:use :common-lisp :xmls :split-sequence))
+  (:use :common-lisp :xmls :split-sequence)
+  (:export :generate-bindings))
 
 (in-package :generate-bindings)
 
@@ -215,19 +216,19 @@
 (defun generate-get-empty-callback (interface-name roe)
   (with-slots (name args) roe
     (let ((callback-name (lisp-name "EMPTY-" interface-name "-" name)))
-      `(get-callback ',callback-name))))
+      `(cffi:get-callback ',callback-name))))
 
 (defun generate-empty-callback (interface-name roe)
   (with-slots (name args) roe
     (let ((callback-name (lisp-name "EMPTY-" interface-name "-" name)))
-      `(defcallback ,callback-name :void
+      `(cffi:defcallback ,callback-name :void
 	 ((client :pointer) (resource :pointer)
 	  ,@(generate-callback-args args))))))
 
 (defun generate-implementation-setfs (interface-name implementation implement-name roe)
   (with-slots (name args) roe
     (let ((roe-name (lisp-name name)))
-      `(setf (foreign-slot-value ,implementation
+      `(setf (cffi:foreign-slot-value ,implementation
 				'(:struct ,implement-name)
 				',roe-name)
 	    (if ,roe-name
@@ -248,7 +249,7 @@
 	  (implement-name (lisp-name name "-IMPLEMENTATION"))
 	  (implement-func (lisp-name "IMPLEMENT-" name))
 	  (implement-func-args (mapcar #'generate-optional-arg roes)))
-      `((defcstruct ,implement-name
+      `((cffi:defcstruct ,implement-name
 	    ,@(mapcar #'generate-struct-entry roes))
 
 	,@(mapcar (lambda (roe)
@@ -256,7 +257,7 @@
 		  roes)
 
 	(defun ,implement-func (&key ,@implement-func-args)
-	  (let ((implementation (foreign-alloc '(:struct ,implement-name))))
+	  (let ((implementation (cffi:foreign-alloc '(:struct ,implement-name))))
 	    ,@(mapcar (lambda (roe)
 			(generate-implementation-setfs name
 						       'implementation
@@ -297,7 +298,7 @@
 			    ;; there is no parse-hex, so read-from-string is (unwisely?) used
 			    (list (first x) (read-from-string (c-hex-to-lisp-hex (second x)))))
 			  fields))
-	     `(defcenum ,name
+	     `(cffi:defcenum ,name
 		,@(mapcar (lambda (x)
 			    ;; make sure the correct value is transfered over
 			    (list (first x) (parse-integer (second x))))
@@ -323,7 +324,7 @@
 	   (func-args (generate-args args nil))
 	   (args-w/types (generate-args args t)))
     `(defun ,func-name (resource ,@func-args)
-       (wl-resource-post-event resource ,opcode ,@args-w/types)))))
+       (wayland-server-core:wl-resource-post-event resource ,opcode ,@args-w/types)))))
 
 (defun generate-rpes (interface roes)
   (let* ((opcodes (loop :for i :from 0 :to (- (length roes) 1) :collecting i)))
@@ -336,7 +337,7 @@
     (if *generate-interfaces*
 	`((defparameter ,interface-name nil))
 	`((defparameter ,interface-name
-	    (foreign-symbol-pointer ,(concatenate 'string (name interface) "_interface")))))))
+	    (cffi:foreign-symbol-pointer ,(concatenate 'string (name interface) "_interface")))))))
 
 (defun generate-server-side (interface)
   (append
@@ -369,7 +370,7 @@
 				  ,(length events)
 				  (null-pointer)))
 	  `(setf ,interface-name
-		 (foreign-symbol-pointer ,(concatenate 'string name "_interface")))))))
+		 (cffi:foreign-symbol-pointer ,(concatenate 'string name "_interface")))))))
 
 (defun replace-type (interfaces)
   (mapcar (lambda (interface)
@@ -471,7 +472,8 @@
 ;; If we don't have a lib that exports the interface objects
 ;; we have to build them
 
-(defun generate-bindings (client? package xml-file &key (path-to-lib nil) (generate-interfaces? nil) (dependencies nil))
+(defun generate-bindings (client? package xml-file &key (path-to-lib nil)
+						     (generate-interfaces? nil) (dependencies nil))
   (setf *generate-interfaces* generate-interfaces?)
   (when (and path-to-lib generate-interfaces?)
     (error "Can't provide path-to-lib and generate-interfaces as true"))
