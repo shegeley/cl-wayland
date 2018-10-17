@@ -485,6 +485,7 @@
 	 (gen-file-name (or output-file (concatenate 'string
 						     (string-downcase (symbol-name package))
 						     "-protocol.lisp"))))
+    (format t "Generating file: ~A~%" gen-file-name)
     (with-open-file (s gen-file-name :direction :output :if-exists :supersede :if-does-not-exist :create)
       (loop :for sexp :in (preamble package symbols path-to-lib dependencies)
 	 :do (format s "~S~%~%" sexp))
