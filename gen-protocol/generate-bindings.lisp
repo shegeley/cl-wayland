@@ -1,8 +1,3 @@
-;;
-;;
-;; (generate-bindings nil 'wayland-server "/usr/share/wayland/wayland.xml" :path-to-lib '("libwayland-server"))
-;; (generate-bindings nil 'xdg-shell-server "xdg-shell.xml" :dependencies (list :wayland-server-protocol) :generate-interfaces? t)
-
 (in-package :generate-bindings)
 
 (defclass wl-interface ()
@@ -468,16 +463,17 @@
 ;; If we don't have a lib that exports the interface objects
 ;; we have to build them
 
-(defun generate-bindings (protocol-name xml-file client? &key (path-to-lib nil)
-							   (output-file nil)
-							   (generate-interfaces? nil) (dependencies nil))
+(defun generate-bindings (protocol-name xml-file protocol-type &key (path-to-lib nil)
+								 (output-file nil)
+								 (generate-interfaces? nil) (dependencies nil))
   (setf *generate-interfaces* generate-interfaces?)
   (when (and path-to-lib generate-interfaces?)
     (error "Can't provide path-to-lib and generate-interfaces as true"))
-  (let* ((package (lisp-name protocol-name (when client? "-client")))
+  (let* ((package (lisp-name protocol-name (when (eql protocol-type :client)
+					     "-client")))
 	 (protocol.xml (read-wayland-xml xml-file))
 	 (protocol (read-protocol protocol.xml))
-	 (code (append (if client?
+	 (code (append (if (eql protocol-type :client)
 			   (generate-client-protocol protocol)
 			   (generate-server-protocol protocol))
 		       (generate-interface-init generate-interfaces? package protocol)))
@@ -485,7 +481,7 @@
 	 (gen-file-name (or output-file (concatenate 'string
 						     (string-downcase (symbol-name package))
 						     "-protocol.lisp"))))
-    (format t "Generating file: ~A~%" gen-file-name)
+    (format t "~%Generating file: ~A~%" gen-file-name)
     (with-open-file (s gen-file-name :direction :output :if-exists :supersede :if-does-not-exist :create)
       (loop :for sexp :in (preamble package symbols path-to-lib dependencies)
 	 :do (format s "~S~%~%" sexp))
