@@ -66,7 +66,7 @@
 (defmethod perform ((op wl-scanner-op) (protocol-file wl-scanner))
   (let ((input-file (first (input-files op protocol-file)))
 	(output-file (first  (output-files op protocol-file))))
-    (format t "~%Generating file: ~A~%" (file-namestring output-file))
+    (format t "~%Generating file ~A~%" (file-namestring output-file))
     (generate-bindings:generate-bindings (protocol-name protocol-file)
     					 input-file
     					 (protocol-type protocol-file)
@@ -88,7 +88,7 @@
 	(type-string (if (eql :server (protocol-type component))
 			 "server-header"
 			 "client-header")))
-    (format t "~%Generating c header file: ~A~%" (file-namestring output-file))
+    (format t "~%Generating c header file ~A~%" (file-namestring output-file))
     (uiop:run-program (list "wayland-scanner"
 			    type-string
 			    (namestring input-file)
