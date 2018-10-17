@@ -2,12 +2,9 @@
 
 (asdf:defsystem #:cl-wayland
   :description "libwayland bindings for Common Lisp"
-  :author "Malcolm Still"
+  :author ("Malcolm Still" "Stuart Dilts")
   :license "BSD 3-Clause"
   :depends-on (#:cffi #:closer-mop)
   :serial t
   :components ((:file "wayland-interface")
-	       (:file "wayland-server-core")
-	       (:file "wayland-server-protocol")
-	       (:file "xdg-shell-server-protocol")
-	       (:file "zxdg-shell-v6-server-protocol")))
+	       (:file "wayland-server-core")))
