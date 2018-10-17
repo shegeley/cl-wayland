@@ -209,12 +209,18 @@
     (let ((callback-name (lisp-name "EMPTY-" interface-name "-" name)))
       `(cffi:get-callback ',callback-name))))
 
+(defun generate-ignore-args (args)
+  (mapcar (lambda (arg)
+	    (lisp-name (name arg)))
+	  args))
+
 (defun generate-empty-callback (interface-name roe)
   (with-slots (name args) roe
     (let ((callback-name (lisp-name "EMPTY-" interface-name "-" name)))
       `(cffi:defcallback ,callback-name :void
-	 ((client :pointer) (resource :pointer)
-	  ,@(generate-callback-args args))))))
+	   ((client :pointer) (resource :pointer)
+	    ,@(generate-callback-args args))
+	 (declare (ignore client resource ,@(generate-ignore-args args)))))))
 
 (defun generate-implementation-setfs (interface-name implementation implement-name roe)
   (with-slots (name args) roe
@@ -481,7 +487,6 @@
 	 (gen-file-name (or output-file (concatenate 'string
 						     (string-downcase (symbol-name package))
 						     "-protocol.lisp"))))
-    (format t "~%Generating file: ~A~%" gen-file-name)
     (with-open-file (s gen-file-name :direction :output :if-exists :supersede :if-does-not-exist :create)
       (loop :for sexp :in (preamble package symbols path-to-lib dependencies)
 	 :do (format s "~S~%~%" sexp))
