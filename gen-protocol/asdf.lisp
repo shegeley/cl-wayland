@@ -1,6 +1,18 @@
 
 (in-package #:wayland-scanner)
 
+(defun get-wl-data-dir-from-pkg-config (package-name)
+  (let ((output (uiop:run-program (concatenate 'string "pkg-config --variable=pkgdatadir "
+					       (string-trim "\n " package-name))
+				  :output '(:string :stripped t))))
+    (make-pathname :directory (append (list :absolute) (split-sequence #\/ output :remove-empty-subseqs t)))))
+
+(defun get-wl-proto-data-dir ()
+  (get-wl-data-dir-from-pkg-config "wayland-protocols"))
+
+(defun get-wl-data-dir ()
+  (get-wl-data-dir-from-pkg-config "wayland-server"))
+
 (defclass wl-scanner-op (asdf:downward-operation)
   ()
   (:documentation "This ASDF operation generates files
@@ -15,12 +27,20 @@
    (protocol-name :reader protocol-name
 		  :initarg :protocol-name)
    (protocol-path :reader protocol-path
-		  :initarg :protocol-path
-		  :initform (make-pathname :directory
-					   (list :absolute "usr" "share" "wayland-protocols"))))
+		  :initarg :protocol-path))
   (:default-initargs
-   :protocol-name (error "Must supply a protocol name"))
+      :protocol-name (error "Must supply a protocol name"))
   (:documentation "This class allows an ASDF operation to find wayland protocol files"))
+
+(defmethod initialize-instance :after ((instance base-wl-scanner) &key (protocol-source :wl-protos) &allow-other-keys)
+  ;; if protocol-path isn't explicity set or nil, use the protocol-source keyword:
+  (unless (and (slot-boundp instance 'protocol-path) (not (slot-value instance 'protocol-path)))
+    (setf (slot-value instance 'protocol-path)
+	  (etypecase protocol-source
+	    (keyword (ecase protocol-source
+		       (:wl-protos (get-wl-proto-data-dir))
+		       ((:wl :wl-server :wl-client) (get-wl-data-dir))))
+	    (string protocol-source)))))
 
 (defun find-file (file-name path)
   "finds all of the files in path with the name file-name"

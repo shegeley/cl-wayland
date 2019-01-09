@@ -3,5 +3,5 @@
   (:export #:generate-bindings))
 
 (uiop:define-package #:wayland-scanner
-    (:mix #:generate-bindings #:asdf #:cl)
+    (:mix #:generate-bindings #:asdf #:cl #:split-sequence)
   (:export #:wl-scanner))
