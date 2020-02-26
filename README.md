@@ -30,7 +30,7 @@ correctly. It introduces two new asdf directives, `:c-wl-scanner` and
   the appropriate type. This is useful when you are grovelling files
   that depend on these header files. When using this directive, the
   file extension of the file to be generated needs to be included.
-+ ':wl-scanner` directly generates lisp source files, and exports all of the generated
++ `:wl-scanner` directly generates lisp source files, and exports all of the generated
   source files based on the protocol type and the protocol name.
 
 Both of these directives have several options that control what type
@@ -39,7 +39,7 @@ located.
 + `:protocol-name` is the name of the protocol.
 + `:protocol-type` determines if a client or server interface is
   generated. Valid values are `:client` and `:server`.
-+ ':protocol-source' tells the generator where to find the xml
++ `:protocol-source` tells the generator where to find the xml
   files. Four options are possible: `:wl-server`, for when
   generating the wayland-server protocol, `:wl-client` for when
   generating the wayland-client protocol, `:wl-protos` for generating
