@@ -59,6 +59,7 @@
    wl-list-insert-list
    wl-list-length
    wl-list-remove
+   do-wl-list
    wl-resource-create
    wl-resource-set-implementation
    wl-resource-set-dispatcher
@@ -103,8 +104,13 @@
 
 (in-package :wayland-server-core)
 
+(defun container-of (ptr type member)
+  (declare (type cffi:foreign-pointer ptr))
+  (cffi:make-pointer (- (cffi:pointer-address ptr) (cffi:foreign-slot-offset type member))))
+
 (define-foreign-library wayland-server
-  (t (:default "libwayland-server")))
+    (:unix (:or "libwayland-server.so.0.1.0" "libwayland-server.so.0" "libwayland-server.so"))
+    (t (:default "libwayland-server")))
 
 (use-foreign-library wayland-server)
 
@@ -311,6 +317,22 @@
   (list :pointer)
   (other :pointer))
 
+(defmacro wl-list-next (head member item-type)
+  `(container-of (foreign-slot-pointer ,head '(:struct wl_list) 'next)
+		 ,item-type
+		 ,member))
+
+(defmacro do-wl-list ((item head member) item-type &body body)
+  (let ((head-symb (gensym "HEAD")))
+    `(let ((,head-symb ,head))
+	 (do ((,item (wl-list-next ,head-symb ,member ,item-type)
+		     (wl-list-next (foreign-slot-pointer ,item ,item-type ,member)
+				   ,member ,item-type)))
+	     ((eq (foreign-slot-pointer ,item ,item-type ,member) ,head-symb))
+	   ,@body))))
+
+
+
 (defcstruct wl_array
   (size :uint32) ; size_t
   (alloc :uint32) ; size_t
@@ -433,7 +455,6 @@
 
 (defcstruct wl_signal
   (listener_list (:struct wl_list)))
-
 
 (defun wl-signal-add (sig listener)
   (with-foreign-slots ((listener_list) sig (:struct wl_signal))
