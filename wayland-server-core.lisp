@@ -88,14 +88,14 @@
    wl_compositor_interface-tclass
    wl_interface
    wl_interface-tclass
-   wl_list
+   wl-list
    wl_list-tclass
-   wl_listener
+   wl-listener
    wl_listener-tclass
    wl_message
    wl_message-tclass
    wl_shell_interface
-   wl_signal
+   wl-signal
    wl-signal-add
    link
    notify
@@ -288,13 +288,13 @@
 (defcfun "wl_client_post_no_memory" :void
   (client :pointer))
 
-(defcstruct wl_list
+(defcstruct wl-list
   (prev :pointer)
   (next :pointer))
 
-(defcstruct wl_listener
+(defcstruct wl-listener
   "wl_listener struct"
-  (link (:struct wl_list))
+  (link (:struct wl-list))
   (notify :pointer))
 
 (defcfun "wl_list_init" :void
@@ -318,7 +318,7 @@
   (other :pointer))
 
 (defmacro wl-list-next (head member item-type)
-  `(container-of (foreign-slot-pointer ,head '(:struct wl_list) 'next)
+  `(container-of (foreign-slot-pointer ,head '(:struct wl-list) 'next)
 		 ,item-type
 		 ,member))
 
@@ -453,10 +453,10 @@
   (display :pointer)
   (format :uint32))
 
-(defcstruct wl_signal
-  (listener_list (:struct wl_list)))
+(defcstruct wl-signal
+  (listener_list (:struct wl-list)))
 
 (defun wl-signal-add (sig listener)
-  (with-foreign-slots ((listener_list) sig (:struct wl_signal))
+  (with-foreign-slots ((listener_list) sig (:struct wl-signal))
     (wl-list-insert (getf listener_list 'prev)
-		    (foreign-slot-pointer listener '(:struct wl_listener) 'link))))
+		    (foreign-slot-pointer listener '(:struct wl-listener) 'link))))
